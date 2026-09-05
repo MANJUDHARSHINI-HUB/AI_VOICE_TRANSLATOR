@@ -1,4 +1,4 @@
-```python
+
 import streamlit as st
 import whisper
 import tempfile
@@ -324,4 +324,3 @@ else:
     st.info(
         "Please record your voice or upload an audio file first."
     )
-```
