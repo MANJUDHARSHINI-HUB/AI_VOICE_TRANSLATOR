@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import whisper
 import tempfile
@@ -17,32 +18,24 @@ st.write("Speak or upload audio and translate it into another language.")
 st.divider()
 
 languages = {
-    "Arabic": "ar",
-    "Bengali": "bn",
     "Chinese": "zh-CN",
     "English": "en",
     "French": "fr",
     "German": "de",
-    "Gujarati": "gu",
     "Hindi": "hi",
-    "Italian": "it",
     "Japanese": "ja",
     "Kannada": "kn",
     "Korean": "ko",
     "Malayalam": "ml",
-    "Marathi": "mr",
-    "Portuguese": "pt",
-    "Punjabi": "pa",
-    "Russian": "ru",
     "Spanish": "es",
     "Tamil": "ta",
-    "Telugu": "te",
-    "Urdu": "ur"
+    "Telugu": "te"
 }
 
 @st.cache_resource
 def load_whisper_model():
     return whisper.load_model("small")
+
 
 st.subheader("🎤 Choose Voice Input")
 
@@ -54,9 +47,6 @@ input_method = st.radio(
 audio_data = None
 file_name = None
 
-# --------------------------------------------------
-# RECORD VOICE
-# --------------------------------------------------
 
 if input_method == "🎙️ Record Voice":
 
@@ -74,10 +64,6 @@ if input_method == "🎙️ Record Voice":
 
         file_name = "recorded_audio.wav"
 
-
-# --------------------------------------------------
-# UPLOAD AUDIO
-# --------------------------------------------------
 
 else:
 
@@ -99,10 +85,6 @@ else:
         st.write("File name:", uploaded_file.name)
 
 
-# --------------------------------------------------
-# OUTPUT LANGUAGE
-# --------------------------------------------------
-
 st.divider()
 
 st.subheader("🌐 Translation Language")
@@ -117,10 +99,6 @@ selected_language = st.selectbox(
 target_language = languages[selected_language]
 
 
-# --------------------------------------------------
-# PROCESS AUDIO
-# --------------------------------------------------
-
 if audio_data is not None:
 
     st.divider()
@@ -132,13 +110,7 @@ if audio_data is not None:
 
         try:
 
-            # ------------------------------------------
-            # SAVE AUDIO
-            # ------------------------------------------
-
-            with st.spinner(
-                "Preparing your audio..."
-            ):
+            with st.spinner("Preparing your audio..."):
 
                 suffix = ".wav"
 
@@ -164,10 +136,6 @@ if audio_data is not None:
                     temp_path = temp_audio.name
 
 
-            # ------------------------------------------
-            # WHISPER
-            # ------------------------------------------
-
             with st.spinner(
                 "🤖 Detecting language and converting speech to text..."
             ):
@@ -185,10 +153,6 @@ if audio_data is not None:
                 detected_language = result["language"]
 
 
-            # ------------------------------------------
-            # DETECTED LANGUAGE
-            # ------------------------------------------
-
             st.success(
                 "Voice converted successfully!"
             )
@@ -197,9 +161,7 @@ if audio_data is not None:
                 "🌍 Detected Input Language"
             )
 
-            detected_language_name = (
-                detected_language
-            )
+            detected_language_name = detected_language
 
             for name, code in languages.items():
 
@@ -210,40 +172,26 @@ if audio_data is not None:
                     break
 
             st.info(
-                f"Detected Language: "
-                f"{detected_language_name}"
+                f"Detected Language: {detected_language_name}"
             )
 
-
-            # ------------------------------------------
-            # ORIGINAL TRANSCRIPTION
-            # ------------------------------------------
 
             st.subheader("📝 Your Speech")
 
             if recognized_text:
 
-                st.write(
-                    recognized_text
-                )
+                st.write(recognized_text)
 
             else:
 
                 st.warning(
-                    "No speech could be detected "
-                    "in the audio."
+                    "No speech could be detected in the audio."
                 )
 
                 st.stop()
 
 
-            # ------------------------------------------
-            # TRANSLATION
-            # ------------------------------------------
-
-            st.subheader(
-                "🌐 Translated Text"
-            )
+            st.subheader("🌐 Translated Text")
 
             if detected_language == target_language:
 
@@ -252,20 +200,16 @@ if audio_data is not None:
             else:
 
                 with st.spinner(
-                    f"Translating into "
-                    f"{selected_language}..."
+                    f"Translating into {selected_language}..."
                 ):
 
-                    translator = GoogleTranslator(
+                    translated_text = GoogleTranslator(
                         source="auto",
                         target=target_language
+                    ).translate(
+                        recognized_text
                     )
 
-                    translated_text = (
-                        translator.translate(
-                            recognized_text
-                        )
-                    )
 
             if not translated_text:
 
@@ -275,15 +219,16 @@ if audio_data is not None:
 
                 st.stop()
 
+
+            error_text = str(
+                translated_text
+            ).lower()
+
             if (
-                "error 500" in
-                str(translated_text).lower()
-                or
-                "server error" in
-                str(translated_text).lower()
-                or
-                "that's an error" in
-                str(translated_text).lower()
+                "error 500" in error_text
+                or "server error" in error_text
+                or "that's an error" in error_text
+                or "no translation was found" in error_text
             ):
 
                 st.error(
@@ -293,22 +238,15 @@ if audio_data is not None:
 
                 st.stop()
 
+
             st.success(
                 "Translation completed!"
             )
 
-            st.write(
-                translated_text
-            )
+            st.write(translated_text)
 
 
-            # ------------------------------------------
-            # TEXT TO SPEECH
-            # ------------------------------------------
-
-            st.subheader(
-                "🔊 Translated Audio"
-            )
+            st.subheader("🔊 Translated Audio")
 
             with st.spinner(
                 "🔊 Generating translated audio..."
@@ -338,6 +276,7 @@ if audio_data is not None:
 
                     audio_bytes = audio.read()
 
+
             st.success(
                 "Translated audio generated successfully!"
             )
@@ -351,8 +290,7 @@ if audio_data is not None:
         except Exception as e:
 
             st.error(
-                "Something went wrong while processing "
-                "the audio."
+                "Something went wrong while processing the audio."
             )
 
             st.write(
@@ -384,6 +322,6 @@ if audio_data is not None:
 else:
 
     st.info(
-        "Please record your voice or upload "
-        "an audio file first."
+        "Please record your voice or upload an audio file first."
     )
+```
