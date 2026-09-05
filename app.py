@@ -244,7 +244,7 @@ if audio_data is not None:
                     try:
 
                         translator = GoogleTranslator(
-                            source=detected_language,
+                            source="auto",
                             target=target_language
                         )
 
