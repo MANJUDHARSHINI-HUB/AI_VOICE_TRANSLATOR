@@ -241,12 +241,37 @@ if audio_data is not None:
                     f"Translating into {selected_language}..."
                 ):
 
-                    translated_text = GoogleTranslator(
-                        source=detected_language,
-                        target=target_language
-                    ).translate(
-                        recognized_text
-                    )
+                    try:
+
+                        translator = GoogleTranslator(
+                            source=detected_language,
+                            target=target_language
+                        )
+
+                        translated_text = translator.translate(
+                            recognized_text
+                        )
+
+                    except Exception as translation_error:
+
+                        st.error("Translation failed.")
+
+                        st.write(
+                            "Detected language:",
+                            detected_language
+                        )
+
+                        st.write(
+                            "Target language:",
+                            target_language
+                        )
+
+                        st.write(
+                            "Error:",
+                            str(translation_error)
+                        )
+
+                        st.stop()
 
 
             st.success("Translation completed!")
