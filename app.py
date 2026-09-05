@@ -2,7 +2,7 @@ import streamlit as st
 import whisper
 import tempfile
 import os
-from deep_translator import GoogleTranslator
+from deep_translator import GoogleTranslator, MyMemoryTranslator
 from gtts import gTTS
 
 st.set_page_config(
@@ -224,6 +224,8 @@ if audio_data is not None:
                     "No speech could be detected in the audio."
                 )
 
+                st.stop()
+
 
             # ------------------------------------------
             # TRANSLATION
@@ -241,37 +243,66 @@ if audio_data is not None:
                     f"Translating into {selected_language}..."
                 ):
 
+                    translated_text = None
+
+                    # Try Google Translator
                     try:
 
-                        translator = GoogleTranslator(
+                        translated_text = GoogleTranslator(
                             source="auto",
                             target=target_language
-                        )
-
-                        translated_text = translator.translate(
+                        ).translate(
                             recognized_text
                         )
 
-                    except Exception as translation_error:
+                        if translated_text is not None:
 
-                        st.error("Translation failed.")
+                            error_text = str(
+                                translated_text
+                            ).lower()
 
-                        st.write(
-                            "Detected language:",
-                            detected_language
-                        )
+                            if (
+                                "error 500" in error_text
+                                or "server error" in error_text
+                                or "that's an error" in error_text
+                                or "no translation was found" in error_text
+                            ):
 
-                        st.write(
-                            "Target language:",
-                            target_language
-                        )
+                                translated_text = None
 
-                        st.write(
-                            "Error:",
-                            str(translation_error)
-                        )
+                    except Exception:
 
-                        st.stop()
+                        translated_text = None
+
+
+                    # Try MyMemory if Google fails
+                    if not translated_text:
+
+                        try:
+
+                            translated_text = MyMemoryTranslator(
+                                source="auto",
+                                target=target_language
+                            ).translate(
+                                recognized_text
+                            )
+
+                        except Exception as translation_error:
+
+                            st.error(
+                                "Translation failed."
+                            )
+
+                            st.write(
+                                "Please try another target language."
+                            )
+
+                            st.write(
+                                "Error:",
+                                str(translation_error)
+                            )
+
+                            st.stop()
 
 
             st.success("Translation completed!")
@@ -284,6 +315,75 @@ if audio_data is not None:
             # ------------------------------------------
 
             st.subheader("🔊 Translated Audio")
+
+            audio_language = target_language
+
+            if target_language == "zh-CN":
+                audio_language = "zh-CN"
+
+            elif target_language == "zh-TW":
+                audio_language = "zh-TW"
+
+            elif target_language == "pt":
+                audio_language = "pt"
+
+            elif target_language == "es":
+                audio_language = "es"
+
+            elif target_language == "en":
+                audio_language = "en"
+
+            elif target_language == "fr":
+                audio_language = "fr"
+
+            elif target_language == "de":
+                audio_language = "de"
+
+            elif target_language == "it":
+                audio_language = "it"
+
+            elif target_language == "ru":
+                audio_language = "ru"
+
+            elif target_language == "ar":
+                audio_language = "ar"
+
+            elif target_language == "hi":
+                audio_language = "hi"
+
+            elif target_language == "ta":
+                audio_language = "ta"
+
+            elif target_language == "kn":
+                audio_language = "kn"
+
+            elif target_language == "te":
+                audio_language = "te"
+
+            elif target_language == "ml":
+                audio_language = "ml"
+
+            elif target_language == "ko":
+                audio_language = "ko"
+
+            elif target_language == "ja":
+                audio_language = "ja"
+
+            elif target_language == "bn":
+                audio_language = "bn"
+
+            elif target_language == "mr":
+                audio_language = "mr"
+
+            elif target_language == "gu":
+                audio_language = "gu"
+
+            elif target_language == "pa":
+                audio_language = "pa"
+
+            elif target_language == "ur":
+                audio_language = "ur"
+
 
             audio_file = tempfile.NamedTemporaryFile(
                 delete=False,
@@ -302,7 +402,7 @@ if audio_data is not None:
 
                     tts = gTTS(
                         text=translated_text,
-                        lang=target_language,
+                        lang=audio_language,
                         slow=False
                     )
 
@@ -333,7 +433,7 @@ if audio_data is not None:
                     os.remove(audio_path)
 
 
-        except Exception as e:
+        except Exception:
 
             st.error(
                 "Something went wrong while processing the audio."
